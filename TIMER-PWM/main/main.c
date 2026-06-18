@@ -12,6 +12,7 @@
 #define TIMG0_LOW32         0x04
 #define TIMG0_T0LOADLO_REG  0x18
 #define TIMG0_T0LOADHI_REG  0x1C
+#define TIMG0_T0LOAD_REG    0x20
 #define TIMG0_T0UPDATE_REG  0xC
 
 #define GPIO_ENABLE_REG     0x20
@@ -24,19 +25,19 @@
 
 void reset_timg0(volatile uint32_t * timg0_t0loadlo_reg,
                  volatile uint32_t * timg0_t0loadhi_reg,
-                 volatile uint32_t * timg0_t0update_reg) {
+                 volatile uint32_t * timg0_t0load_reg) {
     // Set counters to 0
     *timg0_t0loadlo_reg &= 0;
     *timg0_t0loadhi_reg &= 0;
 
     // Push set counters
-    *timg0_t0update_reg |= 1;
+    *timg0_t0load_reg |= 1;
 }
 
 void init_timg0(volatile uint32_t * timg0_config_reg,
                 volatile uint32_t * timg0_t0loadlo_reg,
                 volatile uint32_t * timg0_t0loadhi_reg,
-                volatile uint32_t * timg0_t0update_reg) {
+                volatile uint32_t * timg0_t0load_reg) {
     // Disable timer
     *timg0_config_reg &= ~(1 << TIMG0_T0_EN);
 
@@ -51,7 +52,7 @@ void init_timg0(volatile uint32_t * timg0_config_reg,
     // Enable timer
     *timg0_config_reg |= (1 << TIMG0_T0_EN);
 
-    reset_timg0(timg0_t0loadlo_reg, timg0_t0loadhi_reg, timg0_t0update_reg);
+    reset_timg0(timg0_t0loadlo_reg, timg0_t0loadhi_reg, timg0_t0load_reg);
 }
 
 void app_main(void) {
@@ -59,6 +60,7 @@ void app_main(void) {
     volatile uint32_t *timg0_config_reg =   (volatile uint32_t *) (TIMG_BASE + TIMG0_CONFIG);
     volatile uint32_t *timg0_t0loadlo_reg = (volatile uint32_t *) (TIMG_BASE + TIMG0_T0LOADLO_REG);
     volatile uint32_t *timg0_t0loadhi_reg = (volatile uint32_t *) (TIMG_BASE + TIMG0_T0LOADHI_REG);
+    volatile uint32_t *timg0_t0load_reg = (volatile uint32_t *) (TIMG_BASE + TIMG0_T0LOAD_REG);
     volatile uint32_t *timg0_t0update_reg = (volatile uint32_t *) (TIMG_BASE + TIMG0_T0UPDATE_REG);
     volatile uint32_t *timg0_high32_reg =   (volatile uint32_t *) (TIMG_BASE + TIMG0_HIGH32);
     volatile uint32_t *timg0_low32_reg =    (volatile uint32_t *) (TIMG_BASE + TIMG0_LOW32);
@@ -71,7 +73,7 @@ void app_main(void) {
     init_timg0(timg0_config_reg, 
                timg0_t0loadlo_reg,
                timg0_t0loadhi_reg,
-               timg0_t0update_reg);
+               timg0_t0load_reg);
 
     // init GPIO
     *gpio_enable_reg |= (1 << 2);
@@ -80,11 +82,13 @@ void app_main(void) {
         if (*timg0_low32_reg >= 0xF4240 && *timg0_low32_reg < 0x1E8480) {
             *gpio_out_reg |=  (1 << 2);
         } else if (*timg0_low32_reg >= 0x1E8480) {
-            reset_timg0(timg0_t0loadlo_reg, timg0_t0loadhi_reg, timg0_t0update_reg);
+            reset_timg0(timg0_t0loadlo_reg, timg0_t0loadhi_reg, timg0_t0load_reg);
         }
         else {
             *gpio_out_reg &= ~(1 << 2);
         }
-        vTaskDelay(0);
+        printf("low32: 0x%08lx\n", *timg0_low32_reg);
+        *timg0_t0update_reg |= 1;
+        vTaskDelay(1);
     }
 }
