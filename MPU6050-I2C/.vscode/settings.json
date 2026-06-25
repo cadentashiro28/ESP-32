@@ -4,7 +4,7 @@
   "idf.openOcdConfigs": [
     "board/esp32-wrover-kit-3.3v.cfg"
   ],
-  "idf.portWin": "detect",
+  "idf.portWin": "COM7",
   "idf.currentSetup": "C:\\esp\\v6.0.1\\esp-idf",
   "idf.customExtraVars": {
     "IDF_TARGET": "esp32"
@@ -15,5 +15,5 @@
     "--query-driver=**",
     "--compile-commands-dir=c:\\Users\\caden\\ESP32-Projects\\MPU6050-I2C\\build"
   ],
-  "idf.flashType": "JTAG"
+  "idf.flashType": "UART"
 }
