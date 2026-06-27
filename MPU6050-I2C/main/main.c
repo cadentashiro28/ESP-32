@@ -2,6 +2,8 @@
 #include <soc/i2c_reg.h>
 #include <soc/i2c_struct.h>
 #include <driver/i2c_master.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 #define MPU6050_ADDR 0x68
 #define WHO_AM_I_REG 0x75
@@ -14,9 +16,9 @@ typedef struct {
 
 } MPU6050_Config;
 
-void i2c_write_reg(i2c_master_dev_handle_t dev_handle, uint8_t reg_address, uint8_t reg_value, uint8_t write_len) {
+void i2c_write_reg(i2c_master_dev_handle_t dev_handle, uint8_t reg_address, uint8_t reg_value) {
     uint8_t write_buf[] = {reg_address, reg_value};
-    ESP_ERROR_CHECK(i2c_master_transmit(dev_handle, write_buf, write_len, -1));
+    ESP_ERROR_CHECK(i2c_master_transmit(dev_handle, write_buf, sizeof(write_buf), -1));
 }
 
 void i2c_read_reg(i2c_master_dev_handle_t dev_handle, uint8_t reg_address, uint8_t *read_buf, uint8_t read_len) {
@@ -61,5 +63,9 @@ void mpu6050_init_cfg(i2c_master_dev_handle_t *dev_handle) {
 void app_main() {
     i2c_master_dev_handle_t dev_handle;
     i2c_init(&dev_handle);
-
+    uint8_t read_buf;
+    while (1) {
+        i2c_read_reg(dev_handle, WHO_AM_I_REG, &read_buf, 1);
+        vTaskDelay(pdMS_TO_TICKS(10));     
+    }
 }
